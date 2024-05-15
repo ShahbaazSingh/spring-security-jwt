@@ -6,6 +6,10 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +18,27 @@ import java.util.function.Function;
 @Service
 public class JwtUtil {
 
-    private String SECRET_KEY = "secret";
+    //Specify your algorithm here
+    private Key SECRET_KEY = generateKey("HmacSHA256");
+
+    public JwtUtil() throws NoSuchAlgorithmException {
+    }
+
+    private Key generateKey(String algorithm) throws NoSuchAlgorithmException {
+        try {
+            // Initialize a KeyGenerator for the specified algorithm
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(algorithm);
+
+            // Generate a random secret key
+            SecretKey secretKey = keyGenerator.generateKey();
+
+            // Cast the SecretKey to the Key interface
+            return (Key) secretKey;
+        } catch (NoSuchAlgorithmException e) {
+            // Handle NoSuchAlgorithmException (e.g., algorithm not available)
+            throw new RuntimeException("Error:" + algorithm + " not available.", e);
+        }
+    }
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
